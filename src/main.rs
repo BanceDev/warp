@@ -15,12 +15,19 @@ struct App {
     command: Option<String>,
 }
 
-fn find_icon(icon_name: &str) -> Option<String> {
+fn find_icon(icon_name: &str, icon_theme: Option<&str>, icon_size: Option<i32>) -> Option<String> {
+    // Use a default theme if icon_theme is None
+    let theme = icon_theme.unwrap_or("Adwaita");
+    let size = format!("{}x{}", icon_size.unwrap(), icon_size.unwrap());
+
+    // Build icon directories
     let icon_dirs = [
+        &Path::new("/usr/share/icons").join(theme).join(size),
+        &Path::new("/usr/share/icons").join(theme),
         Path::new("/usr/share/icons"),
         &Path::new(&dirs::home_dir().unwrap()).join(".icons"),
     ];
-    let icon_exts = ["png", "svg", "xpm"];
+    let icon_exts = ["svg", "xpm", "png"];
 
     for dir in &icon_dirs {
         for ext in &icon_exts {
@@ -48,6 +55,8 @@ fn build_ui(app: &gtk::Application) {
         .map(|x| x.as_str().unwrap())
         .collect::<Vec<&str>>();
     let button_height = config["button_height"].as_i64().unwrap() as i32;
+    let icon_theme = config["icon_theme"].as_str().unwrap_or("");
+    let icon_size = config["icon_size"].as_i64().unwrap_or(0) as i32;
 
     let base_dirs = BaseDirectories::with_prefix("applications").unwrap();
 
@@ -68,7 +77,7 @@ fn build_ui(app: &gtk::Application) {
 
             for line in lines {
                 if line.starts_with("Icon=") {
-                    app.icon = find_icon(line[5..].into());
+                    app.icon = find_icon(line[5..].into(), Some(icon_theme), Some(icon_size));
                 }
                 if line.starts_with("Exec=") {
                     app.command = Some(line[5..].split(' ').next().unwrap().into());
