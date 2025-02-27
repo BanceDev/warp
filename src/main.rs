@@ -87,7 +87,7 @@ fn build_ui(app: &gtk::Application) {
         .css_classes(["edock"])
         .build();
 
-    let button_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     button_box.set_css_classes(&["button"]);
 
     for app in apps {
