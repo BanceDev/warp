@@ -21,16 +21,9 @@ box .button {
     background-color: rgba(50, 50, 60, 0.9);
 }
 
-/* separator of application buttons */
-separator {
-    background-color: #777;
-    padding: 0.5px 0px;
-    margin: 0px 8px;
-}
-
 /* application icon*/
 image {
-    margin: 10px;
+    margin: 5px;
 }
 
 /* application button */
