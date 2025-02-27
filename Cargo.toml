@@ -1,0 +1,19 @@
+[package]
+name = "edock"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies.gtk]
+version = "0.9"
+package = "gtk4"
+
+[dependencies.gio]
+version = "0.21.0"
+git = "https://github.com/gtk-rs/gtk-rs-core.git"
+package = "gio"
+
+[dependencies]
+xdg = "2.5.2"
+dirs = "6.0.0"
+walkdir = "2.5.0"
+serde_json = "1.0.139"

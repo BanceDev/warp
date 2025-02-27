@@ -1,0 +1,8 @@
+{
+  "apps": [
+    "firefox",
+    "alacritty",
+	"vesktop"
+  ],
+  "button_height": 65
+}
