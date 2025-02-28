@@ -5,19 +5,106 @@ use gtk::CssProvider;
 use gtk::gdk::Display;
 use gtk::glib;
 use gtk::prelude::*;
+use std::ffi::CStr;
 use std::ffi::CString;
 use std::fs;
 use std::path::Path;
+use std::ptr;
 use walkdir::WalkDir;
 use x11::xlib;
 use xdg::BaseDirectories;
-
 static APP_ID: &str = "dev.eidolon.edock";
 
 #[derive(Debug, Clone)]
 struct App {
     icon: Option<String>,
     command: Option<String>,
+}
+
+unsafe fn query_open_apps(window: &gtk::Window) {
+    unsafe {
+        let display = WidgetExt::display(window);
+        let xdisplay: *mut xlib::Display = display.unsafe_cast::<X11Display>().xdisplay();
+        let root = xlib::XDefaultRootWindow(xdisplay);
+
+        // Get list of windows
+        let mut root_return: xlib::Window = 0;
+        let mut parent_return: xlib::Window = 0;
+        let mut children_return: *mut xlib::Window = ptr::null_mut();
+        let mut nchildren_return: u32 = 0;
+
+        if xlib::XQueryTree(
+            xdisplay,
+            root,
+            &mut root_return,
+            &mut parent_return,
+            &mut children_return,
+            &mut nchildren_return,
+        ) == 0
+        {
+            eprintln!("Failed to query the X tree.");
+            xlib::XCloseDisplay(xdisplay);
+            return;
+        }
+
+        // Iterate over windows
+        for i in 0..nchildren_return {
+            let window = *children_return.add(i as usize);
+
+            if let Some(wm_class) = get_wm_class(xdisplay, window) {
+                println!("Window ID: {} - WM_CLASS: {}", window, wm_class);
+            } else {
+                println!("Skipping {}: No WM_CLASS", window);
+            }
+        }
+
+        // Free memory allocated by XQueryTree
+        if !children_return.is_null() {
+            xlib::XFree(children_return as *mut _);
+        }
+    }
+}
+
+unsafe fn get_wm_class(display: *mut xlib::Display, window: xlib::Window) -> Option<String> {
+    unsafe {
+        let mut actual_type: xlib::Atom = 0;
+        let mut actual_format: i32 = 0;
+        let mut nitems: u64 = 0;
+        let mut bytes_after: u64 = 0;
+        let mut prop_return: *mut u8 = ptr::null_mut();
+
+        let wm_class_atom = xlib::XInternAtom(display, b"WM_CLASS\0".as_ptr() as *const i8, 0);
+        if xlib::XGetWindowProperty(
+            display,
+            window,
+            wm_class_atom,
+            0,
+            1024,
+            0,
+            xlib::XA_STRING,
+            &mut actual_type,
+            &mut actual_format,
+            &mut nitems,
+            &mut bytes_after,
+            &mut prop_return,
+        ) != xlib::Success as i32
+        {
+            return None;
+        }
+
+        if prop_return.is_null() {
+            return None;
+        }
+
+        // WM_CLASS consists of two null-terminated strings (instance name and class name)
+        let wm_class = CStr::from_ptr(prop_return as *const i8)
+            .to_str()
+            .ok()
+            .map(|s| s.to_string());
+
+        xlib::XFree(prop_return as *mut _);
+        wm_class
+    }
 }
 
 fn set_utf8_props(window: &gtk::Window, prop_name: &str, prop_value: &str) {
@@ -157,6 +244,9 @@ fn build_ui(app: &gtk::Application) {
         );
         set_utf8_props(dock_window.upcast_ref(), "_OB_APP_TYPE", "dock");
         dock_window.present();
+        unsafe {
+            query_open_apps(dock_window.upcast_ref());
+        }
     });
 
     let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
