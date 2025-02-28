@@ -8,6 +8,7 @@ use walkdir::WalkDir;
 use xdg::BaseDirectories;
 
 static APP_ID: &str = "dev.eidolon.edock";
+static mut OPEN_APPS: Vec<String> = Vec::new();
 
 #[derive(Debug, Clone)]
 struct App {
@@ -43,6 +44,12 @@ fn find_icon(icon_name: &str, icon_theme: Option<&str>, icon_size: Option<i64>) 
         }
     }
     None
+}
+
+fn app_clicked(command: String) {
+    std::process::Command::new(&command)
+        .spawn()
+        .expect("failed to execute app");
 }
 
 fn build_ui(app: &gtk::Application) {
@@ -110,10 +117,9 @@ fn build_ui(app: &gtk::Application) {
             button.set_child(Some(&image));
         }
         if let Some(command) = app.command {
-            button.connect_clicked(move |_| {
-                std::process::Command::new(&command)
-                    .spawn()
-                    .expect("failed to execute app");
+            button.connect_clicked(move |button| {
+                app_clicked(command.clone());
+                button.set_css_classes(&["app_open"]);
             });
         }
         button.set_size_request(button_height, button_height);

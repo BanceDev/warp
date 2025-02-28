@@ -32,6 +32,24 @@ button.app {
     padding: 0px;
 }
 
+button.app_open {
+    border-bottom: 2px solid rgba(0, 250, 250, 1.0);
+    padding: 0px;
+}
+
+/* application button hovered */
+button.app_open:hover {
+    border: 2px solid rgba(150, 150, 150, 1.0);
+    transition: 0.05s;
+}
+
+/* application button pressed */
+button.app_open:active {
+    border-radius: 50%;
+    background-color: rgba(160, 160, 180, 1.0);
+    transition: 0.1s;
+}
+
 /* application button hovered */
 button.app:hover {
     border: 2px solid rgba(150, 150, 150, 1.0);
