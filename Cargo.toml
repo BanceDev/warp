@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies.gtk]
-version = "0.9"
+version = "0.9.6"
 package = "gtk4"
 
 [dependencies.gio]
@@ -17,3 +17,6 @@ xdg = "2.5.2"
 dirs = "6.0.0"
 walkdir = "2.5.0"
 serde_json = "1.0.139"
+gdk4-x11 = { version = "0.9.6", features = ["x11", "xlib"] }
+x11 = "2.21"
+gdk4 = "0.9.6"
